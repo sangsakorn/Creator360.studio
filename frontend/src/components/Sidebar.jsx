@@ -1,8 +1,7 @@
 import React from 'react';
 import { Home, Search, Library, Plus, Heart } from 'lucide-react';
-import { mockPlaylists } from '../data/mockData';
 
-const Sidebar = ({ currentView, setCurrentView, selectedPlaylist, setSelectedPlaylist }) => {
+const Sidebar = ({ currentView, setCurrentView, selectedPlaylist, setSelectedPlaylist, playlists, onCreatePlaylist }) => {
   const menuItems = [
     { icon: Home, label: 'Home', view: 'home' },
     { icon: Search, label: 'Search', view: 'search' },
@@ -12,8 +11,13 @@ const Sidebar = ({ currentView, setCurrentView, selectedPlaylist, setSelectedPla
   return (
     <div className="w-64 bg-black h-full flex flex-col">
       {/* Logo */}
-      <div className="p-6">
-        <h1 className="text-white text-2xl font-bold">Spotify</h1>
+      <div className="p-6 flex items-center gap-3">
+        <img 
+          src="https://customer-assets.emergentagent.com/job_spotify-clone-2606/artifacts/i5v8gv2g_IMG_20251226_200125.png" 
+          alt="Creator360.Studio" 
+          className="w-10 h-10"
+        />
+        <h1 className="text-white text-xl font-bold">Creator360</h1>
       </div>
 
       {/* Main Navigation */}
