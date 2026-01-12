@@ -76,7 +76,8 @@ class YouTubeService:
             return []
     
     def _parse_duration(self, duration_str: str) -> int:
-        \"\"\"Parse ISO 8601 duration (PT4M13S) to seconds\"\"\"\n        # Remove PT prefix
+        """Parse ISO 8601 duration (PT4M13S) to seconds"""
+        # Remove PT prefix
         duration_str = duration_str.replace('PT', '')
         
         hours = 0
@@ -100,17 +101,18 @@ class YouTubeService:
         return hours * 3600 + minutes * 60 + seconds
     
     def _parse_title(self, title: str) -> Dict[str, str]:
-        \"\"\"Try to extract artist and song from common patterns\"\"\"\n        # Pattern: \"Artist - Song\"
+        """Try to extract artist and song from common patterns"""
+        # Pattern: "Artist - Song"
         if ' - ' in title:
             parts = title.split(' - ', 1)
             return {'artist': parts[0].strip(), 'title': parts[1].strip()}
         
-        # Pattern: \"Artist: Song\"
+        # Pattern: "Artist: Song"
         if ': ' in title:
             parts = title.split(': ', 1)
             return {'artist': parts[0].strip(), 'title': parts[1].strip()}
         
-        # Pattern: \"Song by Artist\"
+        # Pattern: "Song by Artist"
         if ' by ' in title.lower():
             parts = re.split(r' by ', title, 1, re.IGNORECASE)
             return {'title': parts[0].strip(), 'artist': parts[1].strip()}
@@ -119,7 +121,8 @@ class YouTubeService:
         return {'artist': 'Unknown Artist', 'title': title}
     
     def _format_duration(self, seconds: int) -> str:
-        \"\"\"Format seconds to MM:SS\"\"\"\n        minutes = seconds // 60
+        """Format seconds to MM:SS"""
+        minutes = seconds // 60
         secs = seconds % 60
         return f"{minutes}:{secs:02d}"
 
