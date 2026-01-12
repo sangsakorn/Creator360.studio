@@ -13,6 +13,8 @@ const ImportModal = ({ isOpen, onClose, onSuccess, currentPlaylistId = null }) =
   const [isAdding, setIsAdding] = useState({});
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadingFiles, setUploadingFiles] = useState([]);
+  const [uploadStatus, setUploadStatus] = useState({});
 
   const handleYouTubeSearch = async (e) => {
     e.preventDefault();
