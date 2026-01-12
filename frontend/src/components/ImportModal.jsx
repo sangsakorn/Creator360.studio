@@ -266,12 +266,30 @@ const ImportModal = ({ isOpen, onClose, onSuccess, currentPlaylistId = null }) =
                   {isUploading ? (
                     <>
                       <Loader2 className="w-12 h-12 text-orange-500 animate-spin mb-4" />
-                      <p className="text-white mb-2">Uploading... {uploadProgress}%</p>
-                      <div className="w-64 h-2 bg-neutral-700 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-gradient-to-r from-orange-500 to-purple-500 transition-all"
-                          style={{ width: `${uploadProgress}%` }}
-                        />
+                      <p className="text-white mb-2">Uploading {uploadingFiles.length} file(s)...</p>
+                      <div className="w-full max-w-md space-y-2 px-4">
+                        {uploadingFiles.map((fileName) => (
+                          <div key={fileName} className="space-y-1">
+                            <div className="flex justify-between text-xs text-neutral-400">
+                              <span className="truncate max-w-[200px]">{fileName}</span>
+                              <span>
+                                {uploadStatus[fileName]?.status === 'complete' ? '✓' : 
+                                 uploadStatus[fileName]?.status === 'error' ? '✗' : 
+                                 `${uploadStatus[fileName]?.progress || 0}%`}
+                              </span>
+                            </div>
+                            <div className="h-1 bg-neutral-700 rounded-full overflow-hidden">
+                              <div
+                                className={`h-full transition-all ${
+                                  uploadStatus[fileName]?.status === 'complete' ? 'bg-green-500' :
+                                  uploadStatus[fileName]?.status === 'error' ? 'bg-red-500' :
+                                  'bg-gradient-to-r from-orange-500 to-purple-500'
+                                }`}
+                                style={{ width: `${uploadStatus[fileName]?.progress || 0}%` }}
+                              />
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </>
                   ) : (
@@ -280,7 +298,8 @@ const ImportModal = ({ isOpen, onClose, onSuccess, currentPlaylistId = null }) =
                       <p className="mb-2 text-sm text-white">
                         <span className="font-semibold">Click to upload</span> or drag and drop
                       </p>
-                      <p className="text-xs text-neutral-400">MP3, WAV, M4A, or FLAC (MAX. 100MB)</p>
+                      <p className="text-xs text-neutral-400">MP3, WAV, M4A, or FLAC</p>
+                      <p className="text-xs text-orange-500 mt-2">⚡ Select multiple files to upload at once</p>
                     </>
                   )}
                 </div>
@@ -290,12 +309,13 @@ const ImportModal = ({ isOpen, onClose, onSuccess, currentPlaylistId = null }) =
                   accept="audio/mpeg,audio/wav,audio/mp4,audio/x-m4a,audio/flac"
                   onChange={handleFileUpload}
                   disabled={isUploading}
+                  multiple
                 />
               </label>
 
               <div className="flex items-center gap-2 text-neutral-400 text-sm">
                 <Music size={16} />
-                <p>Audio metadata will be automatically extracted from the file</p>
+                <p>Audio metadata will be extracted from filename or ID3 tags</p>
               </div>
             </div>
           )}
