@@ -183,6 +183,7 @@ function App() {
           setSelectedPlaylist={setSelectedPlaylist}
           playlists={playlists}
           onCreatePlaylist={() => setIsCreatePlaylistModalOpen(true)}
+          onOpenThemeCustomizer={() => setIsThemeCustomizerOpen(true)}
         />
         <MainContent
           currentView={currentView}
