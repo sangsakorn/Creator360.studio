@@ -74,52 +74,93 @@ const ImportModal = ({ isOpen, onClose, onSuccess, currentPlaylistId = null }) =
   };
 
   const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
 
-    // Validate file type
+    // Validate file types
     const allowedTypes = ['audio/mpeg', 'audio/wav', 'audio/mp4', 'audio/x-m4a', 'audio/flac'];
-    if (!allowedTypes.includes(file.type)) {
+    const invalidFiles = files.filter(f => !allowedTypes.includes(f.type));
+    
+    if (invalidFiles.length > 0) {
       toast({
         title: 'Invalid file type',
-        description: 'Please upload MP3, WAV, M4A, or FLAC files.',
+        description: `${invalidFiles.length} file(s) skipped. Please upload MP3, WAV, M4A, or FLAC files.`,
         variant: 'destructive',
       });
-      return;
+      
+      // Remove invalid files
+      const validFiles = files.filter(f => allowedTypes.includes(f.type));
+      if (validFiles.length === 0) return;
     }
 
     setIsUploading(true);
-    setUploadProgress(0);
+    setUploadingFiles(files.map(f => f.name));
+    
+    // Initialize status for each file
+    const initialStatus = {};
+    files.forEach(f => {
+      initialStatus[f.name] = { progress: 0, status: 'uploading' };
+    });
+    setUploadStatus(initialStatus);
 
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
+    // Upload files in parallel (max 3 at a time)
+    const uploadPromises = files.map(async (file) => {
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
 
-      const song = await uploadAudioFile(formData, setUploadProgress);
+        const song = await uploadAudioFile(formData, (progress) => {
+          setUploadStatus(prev => ({
+            ...prev,
+            [file.name]: { progress, status: 'uploading' }
+          }));
+        });
 
-      // Add to playlist if currentPlaylistId is provided
-      if (currentPlaylistId) {
-        await addSongToPlaylist(currentPlaylistId, song._id);
+        // Add to playlist if currentPlaylistId is provided
+        if (currentPlaylistId) {
+          await addSongToPlaylist(currentPlaylistId, song._id);
+        }
+
+        setUploadStatus(prev => ({
+          ...prev,
+          [file.name]: { progress: 100, status: 'complete' }
+        }));
+
+        return { success: true, file: file.name };
+      } catch (error) {
+        console.error(`Upload error for ${file.name}:`, error);
+        setUploadStatus(prev => ({
+          ...prev,
+          [file.name]: { progress: 0, status: 'error' }
+        }));
+        return { success: false, file: file.name, error };
       }
+    });
 
+    const results = await Promise.all(uploadPromises);
+    
+    const successCount = results.filter(r => r.success).length;
+    const failCount = results.filter(r => !r.success).length;
+
+    if (successCount > 0) {
       toast({
         title: 'Upload complete!',
-        description: `"${song.title}" uploaded successfully.`,
+        description: `${successCount} file(s) uploaded successfully${failCount > 0 ? `, ${failCount} failed` : ''}.`,
       });
 
       if (onSuccess) onSuccess();
-      e.target.value = '';
-    } catch (error) {
-      console.error('Upload error:', error);
+    } else {
       toast({
         title: 'Upload failed',
-        description: error.response?.data?.detail || 'Please try again.',
+        description: 'All uploads failed. Please try again.',
         variant: 'destructive',
       });
-    } finally {
-      setIsUploading(false);
-      setUploadProgress(0);
     }
+
+    setIsUploading(false);
+    setUploadingFiles([]);
+    setUploadStatus({});
+    e.target.value = '';
   };
 
   if (!isOpen) return null;
