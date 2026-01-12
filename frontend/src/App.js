@@ -34,6 +34,23 @@ function App() {
   // Load data on mount
   useEffect(() => {
     loadData();
+    
+    // Load and apply saved theme
+    const savedTheme = localStorage.getItem('creator360_theme');
+    if (savedTheme) {
+      const theme = JSON.parse(savedTheme);
+      document.documentElement.style.setProperty('--primary-color', theme.primaryColor);
+      document.documentElement.style.setProperty('--secondary-color', theme.secondaryColor);
+      document.documentElement.style.setProperty('--accent-color', theme.accentColor);
+      document.documentElement.style.setProperty('--bg-color', theme.backgroundColor);
+      
+      if (theme.backgroundImage) {
+        document.body.style.backgroundImage = `linear-gradient(rgba(0, 0, 0, ${1 - theme.backgroundOpacity}), rgba(0, 0, 0, ${1 - theme.backgroundOpacity})), url(${theme.backgroundImage})`;
+        document.body.style.backgroundSize = 'cover';
+        document.body.style.backgroundPosition = 'center';
+        document.body.style.backgroundAttachment = 'fixed';
+      }
+    }
   }, []);
 
   const loadData = async () => {
