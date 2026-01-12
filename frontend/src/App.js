@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import Sidebar from './components/Sidebar';
-import MainContentNew from './components/MainContentNew';
+import MainContent from './components/MainContent';
 import DualPlayer from './components/DualPlayer';
 import ImportModal from './components/ImportModal';
 import { Toaster } from './components/ui/toaster';
