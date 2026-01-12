@@ -1,52 +1,72 @@
-import { useEffect } from "react";
-import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
+import React, { useState } from 'react';
+import './App.css';
+import Sidebar from './components/Sidebar';
+import MainContent from './components/MainContent';
+import Player from './components/Player';
+import { mockSongs } from './data/mockData';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+function App() {
+  const [currentView, setCurrentView] = useState('home');
+  const [selectedPlaylist, setSelectedPlaylist] = useState(null);
+  const [currentSong, setCurrentSong] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [queue, setQueue] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
+  const handlePlaySong = (song) => {
+    setCurrentSong(song);
+    setIsPlaying(true);
+    
+    // Set queue based on context
+    if (selectedPlaylist) {
+      const playlistSongs = mockSongs.filter(s => selectedPlaylist.songs.includes(s.id));
+      setQueue(playlistSongs);
+      setCurrentIndex(playlistSongs.findIndex(s => s.id === song.id));
+    } else {
+      setQueue(mockSongs);
+      setCurrentIndex(mockSongs.findIndex(s => s.id === song.id));
     }
   };
 
-  useEffect(() => {
-    helloWorldApi();
-  }, []);
+  const handleNext = () => {
+    if (queue.length === 0) return;
+    const nextIndex = (currentIndex + 1) % queue.length;
+    setCurrentIndex(nextIndex);
+    setCurrentSong(queue[nextIndex]);
+    setIsPlaying(true);
+  };
+
+  const handlePrevious = () => {
+    if (queue.length === 0) return;
+    const prevIndex = currentIndex === 0 ? queue.length - 1 : currentIndex - 1;
+    setCurrentIndex(prevIndex);
+    setCurrentSong(queue[prevIndex]);
+    setIsPlaying(true);
+  };
 
   return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
-    </div>
-  );
-};
-
-function App() {
-  return (
-    <div className="App">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+    <div className="h-screen flex flex-col bg-black">
+      <div className="flex-1 flex overflow-hidden">
+        <Sidebar
+          currentView={currentView}
+          setCurrentView={setCurrentView}
+          selectedPlaylist={selectedPlaylist}
+          setSelectedPlaylist={setSelectedPlaylist}
+        />
+        <MainContent
+          currentView={currentView}
+          selectedPlaylist={selectedPlaylist}
+          onPlaySong={handlePlaySong}
+          currentSong={currentSong}
+        />
+      </div>
+      <Player
+        currentSong={currentSong}
+        isPlaying={isPlaying}
+        setIsPlaying={setIsPlaying}
+        onNext={handleNext}
+        onPrevious={handlePrevious}
+      />
     </div>
   );
 }
