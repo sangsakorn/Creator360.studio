@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar';
 import MainContent from './components/MainContent';
 import DualPlayer from './components/DualPlayer';
 import ImportModal from './components/ImportModal';
+import ThemeCustomizer from './components/ThemeCustomizer';
 import { Toaster } from './components/ui/toaster';
 import { getSongs, getPlaylists, createPlaylist } from './services/api';
 import { toast } from './hooks/use-toast';
