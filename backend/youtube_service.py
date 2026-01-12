@@ -4,31 +4,31 @@ import os
 import re
 from typing import List, Dict
 import isodate
-import httplib2
 
 YOUTUBE_API_KEY = os.environ.get('YOUTUBE_API_KEY')
 
 class YouTubeService:
     def __init__(self):
-        # Use httplib2 directly to avoid credential checks
-        http = httplib2.Http()
+        # Build service without any authentication
         self.youtube = build(
             'youtube', 
             'v3', 
             developerKey=YOUTUBE_API_KEY,
-            http=http,
-            cache_discovery=False
+            cache_discovery=False,
+            num_retries=0
         )
 
     def search_videos(self, query: str, max_results: int = 10) -> List[Dict]:
         try:
+            print(f"Searching YouTube for: {query}")
+            print(f"Using API Key: {YOUTUBE_API_KEY[:20]}...")
+            
             # Search for videos
             search_response = self.youtube.search().list(
                 q=query,
                 part='id,snippet',
                 maxResults=max_results,
-                type='video',
-                videoCategoryId='10'  # Music category
+                type='video'
             ).execute()
 
             video_ids = [item['id']['videoId'] for item in search_response.get('items', [])]
