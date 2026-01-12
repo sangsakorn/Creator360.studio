@@ -4,19 +4,30 @@ import os
 import re
 from typing import List, Dict
 import isodate
+from google.oauth2.credentials import Credentials
+from google.auth.transport.requests import Request
 
 YOUTUBE_API_KEY = os.environ.get('YOUTUBE_API_KEY')
 
+# Set environment variable to prevent metadata service calls
+os.environ['GCE_METADATA_HOST'] = ''
+os.environ['NO_GCE_CHECK'] = 'True'
+
 class YouTubeService:
     def __init__(self):
-        # Build service without any authentication
-        self.youtube = build(
-            'youtube', 
-            'v3', 
-            developerKey=YOUTUBE_API_KEY,
-            cache_discovery=False,
-            num_retries=0
-        )
+        try:
+            # Create service with only API key, no credentials
+            self.youtube = build(
+                'youtube', 
+                'v3', 
+                developerKey=YOUTUBE_API_KEY,
+                cache_discovery=False,
+                num_retries=0,
+                credentials=None  # Explicitly set to None
+            )
+        except Exception as e:
+            print(f"Error initializing YouTube service: {e}")
+            self.youtube = None
 
     def search_videos(self, query: str, max_results: int = 10) -> List[Dict]:
         try:
