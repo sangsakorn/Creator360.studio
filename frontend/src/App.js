@@ -165,7 +165,7 @@ function App() {
           playlists={playlists}
           onCreatePlaylist={() => setIsCreatePlaylistModalOpen(true)}
         />
-        <MainContentNew
+        <MainContent
           currentView={currentView}
           selectedPlaylist={selectedPlaylist}
           onPlaySong={handlePlaySong}
