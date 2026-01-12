@@ -27,6 +27,7 @@ function App() {
   // Modal states
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isCreatePlaylistModalOpen, setIsCreatePlaylistModalOpen] = useState(false);
+  const [isThemeCustomizerOpen, setIsThemeCustomizerOpen] = useState(false);
   const [newPlaylistName, setNewPlaylistName] = useState('');
   const [newPlaylistDescription, setNewPlaylistDescription] = useState('');
 
