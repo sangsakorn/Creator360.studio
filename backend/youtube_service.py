@@ -30,9 +30,12 @@ class YouTubeService:
             self.youtube = None
 
     def search_videos(self, query: str, max_results: int = 10) -> List[Dict]:
+        if not self.youtube:
+            print("YouTube service not initialized")
+            return []
+            
         try:
-            print(f"Searching YouTube for: {query}")
-            print(f"Using API Key: {YOUTUBE_API_KEY[:20]}...")
+            print(f"[DEBUG] Searching YouTube for: {query}")
             
             # Search for videos
             search_response = self.youtube.search().list(
