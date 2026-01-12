@@ -4,12 +4,18 @@ import os
 import re
 from typing import List, Dict
 import isodate
+import google.auth
+from google.auth.transport.requests import Request
 
 YOUTUBE_API_KEY = os.environ.get('YOUTUBE_API_KEY')
 
+# Disable GCE metadata service attempts
+os.environ['GCE_METADATA_HOST'] = ''
+
 class YouTubeService:
     def __init__(self):
-        self.youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
+        # Build with API key only, no credentials
+        self.youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY, cache_discovery=False)
 
     def search_videos(self, query: str, max_results: int = 10) -> List[Dict]:
         try:
