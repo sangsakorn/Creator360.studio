@@ -54,6 +54,13 @@ const Sidebar = ({ currentView, setCurrentView, selectedPlaylist, setSelectedPla
           <Heart size={24} />
           <span className="font-semibold">Liked Songs</span>
         </button>
+        <button 
+          onClick={onOpenThemeCustomizer}
+          className="flex items-center gap-4 w-full px-3 py-3 text-neutral-400 hover:text-white transition-colors"
+        >
+          <Palette size={24} />
+          <span className="font-semibold">Customize Theme</span>
+        </button>
       </div>
 
       {/* Divider */}
