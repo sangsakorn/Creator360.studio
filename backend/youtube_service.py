@@ -1,69 +1,56 @@
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
 import os
 import re
+import requests
 from typing import List, Dict
-import isodate
-from google.oauth2.credentials import Credentials
-from google.auth.transport.requests import Request
 
 YOUTUBE_API_KEY = os.environ.get('YOUTUBE_API_KEY')
-
-# Set environment variable to prevent metadata service calls
-os.environ['GCE_METADATA_HOST'] = ''
-os.environ['NO_GCE_CHECK'] = 'True'
+YOUTUBE_API_BASE = 'https://www.googleapis.com/youtube/v3'
 
 class YouTubeService:
-    def __init__(self):
-        try:
-            # Create service with only API key, no credentials
-            self.youtube = build(
-                'youtube', 
-                'v3', 
-                developerKey=YOUTUBE_API_KEY,
-                cache_discovery=False,
-                num_retries=0,
-                credentials=None  # Explicitly set to None
-            )
-        except Exception as e:
-            print(f"Error initializing YouTube service: {e}")
-            self.youtube = None
-
     def search_videos(self, query: str, max_results: int = 10) -> List[Dict]:
-        if not self.youtube:
-            print("YouTube service not initialized")
-            return []
-            
         try:
-            print(f"[DEBUG] Searching YouTube for: {query}")
+            print(f"[DEBUG] Searching YouTube: {query}")
             
-            # Search for videos
-            search_response = self.youtube.search().list(
-                q=query,
-                part='id,snippet',
-                maxResults=max_results,
-                type='video'
-            ).execute()
-
-            video_ids = [item['id']['videoId'] for item in search_response.get('items', [])]
+            # Search for videos using REST API directly
+            search_url = f"{YOUTUBE_API_BASE}/search"
+            search_params = {
+                'key': YOUTUBE_API_KEY,
+                'q': query,
+                'part': 'id,snippet',
+                'maxResults': max_results,
+                'type': 'video'
+            }
+            
+            search_response = requests.get(search_url, params=search_params, timeout=10)
+            search_response.raise_for_status()
+            search_data = search_response.json()
+            
+            video_ids = [item['id']['videoId'] for item in search_data.get('items', [])]
             
             if not video_ids:
+                print("[DEBUG] No videos found")
                 return []
-
+            
             # Get video details including duration
-            videos_response = self.youtube.videos().list(
-                part='contentDetails,snippet',
-                id=','.join(video_ids)
-            ).execute()
-
+            videos_url = f"{YOUTUBE_API_BASE}/videos"
+            videos_params = {
+                'key': YOUTUBE_API_KEY,
+                'part': 'contentDetails,snippet',
+                'id': ','.join(video_ids)
+            }
+            
+            videos_response = requests.get(videos_url, params=videos_params, timeout=10)
+            videos_response.raise_for_status()
+            videos_data = videos_response.json()
+            
             results = []
-            for item in videos_response.get('items', []):
+            for item in videos_data.get('items', []):
                 video_id = item['id']
                 snippet = item['snippet']
-                duration_iso = item['contentDetails']['duration']
+                duration_str = item['contentDetails']['duration']
                 
-                # Parse ISO 8601 duration
-                duration_seconds = int(isodate.parse_duration(duration_iso).total_seconds())
+                # Parse ISO 8601 duration (PT4M13S format)
+                duration_seconds = self._parse_duration(duration_str)
                 duration_formatted = self._format_duration(duration_seconds)
                 
                 # Extract artist and title from video title
@@ -77,35 +64,62 @@ class YouTubeService:
                     'duration': duration_formatted,
                     'durationSeconds': duration_seconds
                 })
-
+            
+            print(f"[DEBUG] Found {len(results)} videos")
             return results
-
-        except HttpError as e:
+            
+        except requests.exceptions.RequestException as e:
+            print(f"YouTube API request error: {e}")
+            return []
+        except Exception as e:
             print(f"YouTube API error: {e}")
             return []
-
+    
+    def _parse_duration(self, duration_str: str) -> int:
+        \"\"\"Parse ISO 8601 duration (PT4M13S) to seconds\"\"\"\n        # Remove PT prefix
+        duration_str = duration_str.replace('PT', '')
+        
+        hours = 0
+        minutes = 0
+        seconds = 0
+        
+        # Extract hours
+        if 'H' in duration_str:
+            hours = int(duration_str.split('H')[0])
+            duration_str = duration_str.split('H')[1]
+        
+        # Extract minutes
+        if 'M' in duration_str:
+            minutes = int(duration_str.split('M')[0])
+            duration_str = duration_str.split('M')[1]
+        
+        # Extract seconds
+        if 'S' in duration_str:
+            seconds = int(duration_str.replace('S', ''))
+        
+        return hours * 3600 + minutes * 60 + seconds
+    
     def _parse_title(self, title: str) -> Dict[str, str]:
-        # Try to extract artist and song from common patterns
-        # Pattern: "Artist - Song"
+        \"\"\"Try to extract artist and song from common patterns\"\"\"\n        # Pattern: \"Artist - Song\"
         if ' - ' in title:
             parts = title.split(' - ', 1)
             return {'artist': parts[0].strip(), 'title': parts[1].strip()}
         
-        # Pattern: "Artist: Song"
+        # Pattern: \"Artist: Song\"
         if ': ' in title:
             parts = title.split(': ', 1)
             return {'artist': parts[0].strip(), 'title': parts[1].strip()}
         
-        # Pattern: "Song by Artist"
+        # Pattern: \"Song by Artist\"
         if ' by ' in title.lower():
             parts = re.split(r' by ', title, 1, re.IGNORECASE)
             return {'title': parts[0].strip(), 'artist': parts[1].strip()}
         
         # Default: use whole title
         return {'artist': 'Unknown Artist', 'title': title}
-
+    
     def _format_duration(self, seconds: int) -> str:
-        minutes = seconds // 60
+        \"\"\"Format seconds to MM:SS\"\"\"\n        minutes = seconds // 60
         secs = seconds % 60
         return f"{minutes}:{secs:02d}"
 
