@@ -68,34 +68,84 @@ async def upload_audio(
     album: Optional[str] = Form(None),
     coverImage: Optional[str] = Form(None)
 ):
-    """Upload an audio file"""
+    """Upload an audio file - optimized for speed"""
     # Validate file type
-    allowed_types = ['audio/mpeg', 'audio/wav', 'audio/mp4', 'audio/x-m4a', 'audio/flac']
-    if file.content_type not in allowed_types:
-        raise HTTPException(status_code=400, detail="Invalid file type. Allowed: MP3, WAV, M4A, FLAC")
+    allowed_types = ['audio/mpeg', 'audio/wav', 'audio/mp4', 'audio/x-m4a', 'audio/flac', 'audio/ogg']
+    allowed_extensions = ['.mp3', '.wav', '.m4a', '.flac', '.ogg']
     
-    # Upload file to GridFS
-    upload_result = await file_service.upload_audio_file(file)
+    file_ext = os.path.splitext(file.filename)[1].lower()
+    if file.content_type not in allowed_types and file_ext not in allowed_extensions:
+        raise HTTPException(status_code=400, detail="Invalid file type. Allowed: MP3, WAV, M4A, FLAC, OGG")
     
-    # Use provided metadata or extracted metadata
-    metadata = upload_result['metadata']
-    song_dict = {
-        'title': title or metadata['title'],
-        'artist': artist or metadata['artist'],
-        'album': album or metadata['album'],
-        'duration': metadata['duration'],
-        'coverImage': coverImage or 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=300&h=300&fit=crop',
-        'source': 'upload',
-        'audioFileId': upload_result['fileId'],
-        'fileName': upload_result['fileName'],
-        'fileSize': upload_result['fileSize'],
-        'createdAt': datetime.utcnow()
-    }
-    
-    result = await db.songs.insert_one(song_dict)
-    song_dict['_id'] = str(result.inserted_id)
-    
-    return Song(**song_dict)
+    try:
+        # Read file content
+        content = await file.read()
+        file_size = len(content)
+        
+        # Quick validation - check if file is not empty
+        if file_size == 0:
+            raise HTTPException(status_code=400, detail="Empty file")
+        
+        # Upload to GridFS first (fast)
+        file_id = await file_service.fs.upload_from_stream(
+            file.filename,
+            content,
+            metadata={
+                'contentType': file.content_type,
+                'size': file_size
+            }
+        )
+        
+        # Use provided metadata or extract from filename (skip slow mutagen extraction)
+        if title and artist:
+            # User provided metadata - use it directly
+            song_title = title
+            song_artist = artist
+            song_album = album or 'Unknown Album'
+            duration = 0  # Will be updated when played
+        else:
+            # Quick extraction from filename
+            filename_no_ext = os.path.splitext(file.filename)[0]
+            
+            # Try to parse "Artist - Title" format
+            if ' - ' in filename_no_ext:
+                parts = filename_no_ext.split(' - ', 1)
+                song_artist = parts[0].strip()
+                song_title = parts[1].strip()
+            else:
+                song_artist = 'Unknown Artist'
+                song_title = filename_no_ext
+            
+            song_album = album or 'Unknown Album'
+            duration = 0  # Will be updated when played
+        
+        song_dict = {
+            'title': song_title,
+            'artist': song_artist,
+            'album': song_album,
+            'duration': duration,
+            'coverImage': coverImage or 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=300&h=300&fit=crop',
+            'source': 'upload',
+            'audioFileId': str(file_id),
+            'fileName': file.filename,
+            'fileSize': file_size,
+            'createdAt': datetime.utcnow()
+        }
+        
+        result = await db.songs.insert_one(song_dict)
+        song_dict['_id'] = str(result.inserted_id)
+        
+        return Song(**song_dict)
+        
+    except Exception as e:
+        print(f"Upload error: {e}")
+        # Clean up GridFS file if exists
+        if 'file_id' in locals():
+            try:
+                await file_service.fs.delete(file_id)
+            except:
+                pass
+        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
 
 
 @api_router.get("/stream/audio/{song_id}")
