@@ -4,22 +4,20 @@ import os
 import re
 from typing import List, Dict
 import isodate
+import httplib2
 
 YOUTUBE_API_KEY = os.environ.get('YOUTUBE_API_KEY')
 
 class YouTubeService:
     def __init__(self):
-        # Disable default credentials and metadata service
-        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = ''
-        os.environ['GCE_METADATA_HOST'] = ''
-        
-        # Build YouTube service with API key only
+        # Use httplib2 directly to avoid credential checks
+        http = httplib2.Http()
         self.youtube = build(
             'youtube', 
             'v3', 
             developerKey=YOUTUBE_API_KEY,
-            cache_discovery=False,
-            static_discovery=False
+            http=http,
+            cache_discovery=False
         )
 
     def search_videos(self, query: str, max_results: int = 10) -> List[Dict]:
