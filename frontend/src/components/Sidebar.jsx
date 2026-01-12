@@ -43,7 +43,10 @@ const Sidebar = ({ currentView, setCurrentView, selectedPlaylist, setSelectedPla
 
       {/* Create Playlist */}
       <div className="px-3 mb-4">
-        <button className="flex items-center gap-4 w-full px-3 py-3 text-neutral-400 hover:text-white transition-colors">
+        <button 
+          onClick={onCreatePlaylist}
+          className="flex items-center gap-4 w-full px-3 py-3 text-neutral-400 hover:text-white transition-colors"
+        >
           <Plus size={24} />
           <span className="font-semibold">Create Playlist</span>
         </button>
@@ -58,15 +61,15 @@ const Sidebar = ({ currentView, setCurrentView, selectedPlaylist, setSelectedPla
 
       {/* Playlists */}
       <div className="flex-1 overflow-y-auto px-3">
-        {mockPlaylists.map((playlist) => (
+        {playlists.map((playlist) => (
           <button
-            key={playlist.id}
+            key={playlist._id}
             onClick={() => {
               setSelectedPlaylist(playlist);
               setCurrentView(null);
             }}
             className={`w-full text-left px-3 py-2 rounded-md transition-colors ${
-              selectedPlaylist?.id === playlist.id
+              selectedPlaylist?._id === playlist._id
                 ? 'bg-neutral-800 text-white'
                 : 'text-neutral-400 hover:text-white'
             }`}
