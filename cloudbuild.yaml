@@ -1,27 +1,26 @@
 steps:
   - name: 'gcr.io/cloud-builders/docker'
-      args:
-            - 'build'
-                  - '-t'
-                        - 'gcr.io/$PROJECT_ID/creator360-studio:$COMMIT_SHA'
-                              - '.'
-                                - name: 'gcr.io/cloud-builders/docker'
-                                    args:
-                                          - 'push'
-                                                - 'gcr.io/$PROJECT_ID/creator360-studio:$COMMIT_SHA'
-                                                  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-                                                      entrypoint: 'gcloud'
-                                                          args:
-                                                                - 'run'
-                                                                      - 'deploy'
-                                                                            - 'creator360-studio'
-                                                                                  - '--image'
-                                                                                        - 'gcr.io/$PROJECT_ID/creator360-studio:$COMMIT_SHA'
-                                                                                              - '--region'
-                                                                                                    - 'asia-southeast1'
-                                                                                                          - '--platform'
-                                                                                                                - 'managed'
-                                                                                                                      - '--allow-unauthenticated'
-                                                                                                                      images:
-                                                                                                                        - 'gcr.io/$PROJECT_ID/creator360-studio:$COMMIT_SHA'
-                                                                                                                        
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/creator360-studio:$COMMIT_SHA'
+      - '.'
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/creator360-studio:$COMMIT_SHA'
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'creator360-studio'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/creator360-studio:$COMMIT_SHA'
+      - '--region'
+      - 'asia-southeast1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+images:
+  - 'gcr.io/$PROJECT_ID/creator360-studio:$COMMIT_SHA'
