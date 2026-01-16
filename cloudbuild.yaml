@@ -24,5 +24,4 @@ steps:
 
                                                                                         images:
                                                                                           - 'gcr.io/$PROJECT_ID/creator360-studio:$COMMIT_SHA'
-
                                                                                           
