@@ -5,6 +5,8 @@ import MainContent from './components/MainContent';
 import DualPlayer from './components/DualPlayer';
 import ImportModal from './components/ImportModal';
 import ThemeCustomizer from './components/ThemeCustomizer';
+import LandingPage from './components/LandingPage';
+import Dashboard from './components/Dashboard';
 import { Toaster } from './components/ui/toaster';
 import { getSongs, getPlaylists, createPlaylist } from './services/api';
 import { toast } from './hooks/use-toast';
@@ -12,6 +14,7 @@ import { Input } from './components/ui/input';
 import { Button } from './components/ui/button';
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentView, setCurrentView] = useState('home');
   const [selectedPlaylist, setSelectedPlaylist] = useState(null);
   const [currentSong, setCurrentSong] = useState(null);
@@ -173,52 +176,16 @@ function App() {
     );
   }
 
+  if (!isAuthenticated) {
+    return <LandingPage onGetStarted={() => setIsAuthenticated(true)} />;
+  }
+
   return (
-    <div className="h-screen flex flex-col bg-black">
-      <div className="flex-1 flex overflow-hidden">
-        <Sidebar
-          currentView={currentView}
-          setCurrentView={setCurrentView}
-          selectedPlaylist={selectedPlaylist}
-          setSelectedPlaylist={setSelectedPlaylist}
-          playlists={playlists}
-          onCreatePlaylist={() => setIsCreatePlaylistModalOpen(true)}
-          onOpenThemeCustomizer={() => setIsThemeCustomizerOpen(true)}
-        />
-        <MainContent
-          currentView={currentView}
-          selectedPlaylist={selectedPlaylist}
-          onPlaySong={handlePlaySong}
-          currentSong={currentSong}
-          playlists={playlists}
-          songs={songs}
-          onOpenImportModal={handleOpenImportModal}
-          onRefreshData={loadData}
-        />
-      </div>
-      <DualPlayer
-        currentSong={currentSong}
-        isPlaying={isPlaying}
-        setIsPlaying={setIsPlaying}
-        onNext={handleNext}
-        onPrevious={handlePrevious}
-      />
-
-      {/* Import Modal */}
-      <ImportModal
-        isOpen={isImportModalOpen}
-        onClose={() => setIsImportModalOpen(false)}
-        onSuccess={handleImportSuccess}
-        currentPlaylistId={selectedPlaylist?._id}
-      />
-
-      {/* Theme Customizer */}
-      <ThemeCustomizer
-        isOpen={isThemeCustomizerOpen}
-        onClose={() => setIsThemeCustomizerOpen(false)}
-      />
-
-      {/* Create Playlist Modal */}
+    <>
+      <Dashboard onLogout={() => setIsAuthenticated(false)} />
+      <Toaster />
+    </>
+  );* Create Playlist Modal */}
       {isCreatePlaylistModalOpen && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
           <div className="bg-neutral-900 rounded-lg w-full max-w-md p-6">

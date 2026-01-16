@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Play, Clock, Plus, Search as SearchIcon } from 'lucide-react';
 import { getSongs, formatDuration } from '../services/api';
+import AIStudio from './AIStudio';
 
 const MainContent = ({
   currentView,
@@ -290,6 +291,7 @@ const MainContent = ({
         currentView === 'home' ? renderHome() :
         currentView === 'search' ? renderSearch() :
         currentView === 'library' ? renderLibrary() :
+        currentView === 'ai-studio' ? <AIStudio /> :
         renderHome()
       )}
     </div>

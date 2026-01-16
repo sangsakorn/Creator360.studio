@@ -1,11 +1,12 @@
 import React from 'react';
-import { Home, Search, Library, Plus, Heart, Palette } from 'lucide-react';
+import { Home, Search, Library, Plus, Heart, Palette, Sparkles } from 'lucide-react';
 
 const Sidebar = ({ currentView, setCurrentView, selectedPlaylist, setSelectedPlaylist, playlists, onCreatePlaylist, onOpenThemeCustomizer }) => {
   const menuItems = [
     { icon: Home, label: 'Home', view: 'home' },
     { icon: Search, label: 'Search', view: 'search' },
-    { icon: Library, label: 'Your Library', view: 'library' }
+    { icon: Library, label: 'Your Library', view: 'library' },
+    { icon: Sparkles, label: 'AI Studio', view: 'ai-studio' }
   ];
 
   return (
