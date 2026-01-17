@@ -23,7 +23,7 @@ RUN apt-get update && apt-get install -y \
         COPY backend/ ./backend/
 
         # Copy built frontend from Stage 1
-        COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
+        COPY --from=frontend-builder /app/frontend/build ./frontend/dist
 
         # Set environment variables
         ENV PORT=8080
