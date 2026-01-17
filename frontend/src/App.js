@@ -185,11 +185,11 @@ function App() {
       <Dashboard onLogout={() => setIsAuthenticated(false)} />
       <Toaster />
     </>
-  );* Create Playlist Modal */}
+        );
       {isCreatePlaylistModalOpen && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
           <div className="bg-neutral-900 rounded-lg w-full max-w-md p-6">
-            <h2 className="text-2xl font-bold text-white mb-4">Create Playlist</h2>
+            
             <div className="space-y-4">
               <div>
                 <label className="text-sm text-neutral-400 mb-2 block">Playlist Name</label>
