@@ -184,8 +184,6 @@ function App() {
     <>
       <Dashboard onLogout={() => setIsAuthenticated(false)} />
       <Toaster />
-    </>
-        );
       {isCreatePlaylistModalOpen && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
           <div className="bg-neutral-900 rounded-lg w-full max-w-md p-6">
@@ -232,12 +230,8 @@ function App() {
               </div>
             </div>
           </div>
-        </div>
-      )}
-
-      <Toaster />
-    </div>
-  );
+										  </>
+										  
 }
 
 export default App;
